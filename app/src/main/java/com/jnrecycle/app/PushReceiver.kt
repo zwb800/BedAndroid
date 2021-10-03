@@ -1,13 +1,12 @@
 package com.jnrecycle.app
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
-import android.net.Uri
+import android.appwidget.AppWidgetManager
+import android.content.*
+import android.os.Build
 import android.text.TextUtils
+import android.widget.RemoteViews
+import androidx.annotation.RequiresApi
 import com.xiaomi.mipush.sdk.*
-import java.net.URI
 
 
 class PushReceiver : PushMessageReceiver() {
@@ -46,6 +45,7 @@ class PushReceiver : PushMessageReceiver() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onNotificationMessageArrived(context: Context?, message: MiPushMessage) {
         mMessage = message.content
         if (!TextUtils.isEmpty(message.topic)) {
@@ -56,6 +56,75 @@ class PushReceiver : PushMessageReceiver() {
             mUserAccount = message.userAccount
         }
         PushActivity.savePush(context,message)
+
+        val bedno =  message.notifyId
+        var txt_time_id = R.id.txt_bed1_time
+        var txt_duration_id = R.id.txt_bed1_duration
+        var layout_id = R.id.bed1
+        var txt_bed_title = R.id.txt_bed1_title
+
+        if(bedno == 1)
+        {
+            txt_time_id = R.id.txt_bed1_time
+            txt_duration_id =  R.id.txt_bed1_duration
+            layout_id = R.id.bed1
+            txt_bed_title = R.id.txt_bed1_title
+        }
+        else if(bedno == 2)
+        {
+            txt_time_id = R.id.txt_bed2_time
+            txt_duration_id =  R.id.txt_bed2_duration
+            layout_id = R.id.bed2
+            txt_bed_title = R.id.txt_bed2_title
+        }
+        else if(bedno == 3)
+        {
+            txt_time_id = R.id.txt_bed3_time
+            txt_duration_id =  R.id.txt_bed3_duration
+            layout_id = R.id.bed3
+            txt_bed_title = R.id.txt_bed3_title
+        }
+        else if(bedno == 4)
+        {
+            txt_time_id = R.id.txt_bed4_time
+            txt_duration_id =  R.id.txt_bed4_duration
+            layout_id = R.id.bed4
+            txt_bed_title = R.id.txt_bed4_title
+        }
+        else if(bedno == 5)
+        {
+            txt_time_id = R.id.txt_bed5_time
+            txt_duration_id =  R.id.txt_bed5_duration
+            layout_id = R.id.bed5
+            txt_bed_title = R.id.txt_bed5_title
+        }
+        else if(bedno == 6)
+        {
+            txt_time_id = R.id.txt_bed6_time
+            txt_duration_id =  R.id.txt_bed6_duration
+            layout_id = R.id.bed6
+            txt_bed_title = R.id.txt_bed6_title
+        }
+
+        val time = message.description
+        val liedown = message.title.contains("躺下")
+
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        // Construct the RemoteViews object
+        val views = RemoteViews(context!!.packageName, R.layout.bed_widget)
+        views.setTextViewText(if (liedown) txt_time_id else txt_duration_id,
+            time.substring(0,time.lastIndexOf(':')))
+        views.setInt(layout_id,"setBackgroundResource",
+            if(liedown) R.drawable.shape_black else R.drawable.shape_white)
+
+        val txtColor = context.getColor(if(liedown) R.color.white else R.color.black)
+        views.setTextColor(txt_time_id, txtColor)
+        views.setTextColor(txt_duration_id,txtColor)
+        views.setTextColor(txt_bed_title,txtColor)
+
+        // Instruct the widget manager to update the widget
+        appWidgetManager.updateAppWidget(
+            ComponentName(context,BedWidget::class.java), views)
     }
 
     override fun onCommandResult(context: Context?, message: MiPushCommandMessage) {
